@@ -1,0 +1,35 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+LAYOUT_LANDSCAPE()
+
+Container_Boundary(collector, "Collector Container"){
+    Component(uface, "Platform Connector Controller", "Facade Component", "")
+    Component(uimpl, "Platform Connector Provider",  "TCP / UDP / MQTT / GRPC / etc.", "Differs from Protocol")
+    Rel(uface, uimpl, "sends messages to", "")
+    Lay_D(uface, uimpl)
+
+    Component(dface, "Device Connector Controller", "Facade Component", "")
+    Rel(uface, dface, "polls messages (which derived from events) to", "")
+
+    Component(dimpl, "Device Connector Provider", "builtin / dynamic lib / etc.", "Differs from Behavior Style\n")
+    Rel(dface, dimpl, "polls events & configurations from", "")
+    Lay_D(dface, dimpl)
+    Lay_L(uimpl, dimpl)
+
+    ComponentDb(snapshot, "Embed Relational Database", "sqlite", "Used for Persisting Configurations")
+    Rel(uface, snapshot, "manipulates platform configurations against", "via JDBC")
+    Rel(dface, snapshot, "manipulates device configurations against", "via JDBC")
+
+}
+
+Person_Ext(user, "Configurations Operator", "")
+Rel(user, dface, "manipulates device configurations against", "via HTTP")
+Rel(user, uface, "manipulates platform configurations against", "via HTTP")
+
+Container_Ext(eimpl, "External Device Connector Provider", "Process")
+Rel(dimpl, eimpl, "polls messages (which derived from events) to", "via IPC etc.", "In Remote Style")
+
+
+@enduml
